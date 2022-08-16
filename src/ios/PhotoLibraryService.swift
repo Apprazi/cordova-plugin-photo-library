@@ -35,7 +35,6 @@ final class PhotoLibraryService {
     let cachingImageManager: PHCachingImageManager!
 
     let contentMode = PHImageContentMode.aspectFill // AspectFit: can be smaller, AspectFill - can be larger. TODO: resize to exact size
-
     var cacheActive = false
 
     let mimeTypes = [
@@ -99,11 +98,6 @@ final class PhotoLibraryService {
 
     }
 
-    static func hasPermission() -> Bool {
-        return PHPhotoLibrary.authorizationStatus() == .authorized
-
-    }
-
     func getLibrary(_ options: PhotoLibraryGetLibraryOptions, completion: @escaping (_ result: [NSDictionary], _ chunkNum: Int, _ isLastChunk: Bool) -> Void) {
 
         if(options.includeCloudData == false) {
@@ -146,7 +140,6 @@ final class PhotoLibraryService {
 //            self.cachingImageManager.startCachingImages(for: assets, targetSize: CGSize(width: options.thumbnailWidth, height: options.thumbnailHeight), contentMode: self.contentMode, options: self.imageRequestOptions)
 //            self.cacheActive = true
 //        }
-
         var chunk = [NSDictionary]()
         var chunkStartTime = NSDate()
         var chunkNum = 0
@@ -493,7 +486,7 @@ final class PhotoLibraryService {
         }
 
         // Permission was manually denied by user, open settings screen
-        let settingsUrl = URL(string: UIApplication.openSettingsURLString)
+        let settingsUrl = URL(string: UIApplicationOpenSettingsURLString)
         if let url = settingsUrl {
             UIApplication.shared.openURL(url)
             // TODO: run callback only when return ?
@@ -587,11 +580,9 @@ final class PhotoLibraryService {
             //                return
             //            }
             //            UISaveVideoAtPathToSavedPhotosAlbum(videoURL.relativePath!, nil, nil, nil)
-
             if !assetsLibrary.videoAtPathIs(compatibleWithSavedPhotosAlbum: videoURL) {
 
                 // TODO: try to convert to MP4 as described here?: http://stackoverflow.com/a/39329155/1691132
-
                 completion(nil, "Provided video is not compatible with Saved Photo album")
                 return
             }
@@ -723,15 +714,14 @@ final class PhotoLibraryService {
         //        let provider: CGDataProvider = CGImageGetDataProvider(image.CGImage)!
         //        let data = CGDataProviderCopyData(provider)
         //        return data;
-
         var data: Data?
         var mimeType: String?
 
         if (imageHasAlpha(image)){
-            data = image.pngData()
+            data = UIImagePNGRepresentation(image)
             mimeType = data != nil ? "image/png" : nil
         } else {
-            data = image.jpegData(compressionQuality: CGFloat(quality))
+            data = UIImageJPEGRepresentation(image, CGFloat(quality))
             mimeType = data != nil ? "image/jpeg" : nil
         }
 
